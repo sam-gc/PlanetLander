@@ -13,6 +13,22 @@ void render()
     SDL_GL_SwapWindow(glob_info.window);
 }
 
+void resize(SDL_Event *e)
+{
+    if(e->window.event != SDL_WINDOWEVENT_RESIZED)
+        return;
+
+    int width = e->window.data1;
+    int height = e->window.data2;
+    float aspect = (float)width / height;
+
+    glob_info.winfo.width = width;
+    glob_info.winfo.height = height;
+    glob_info.winfo.aspectRatio = aspect;
+
+    glViewport(0, 0, width, height);
+}
+
 void loop()
 {
     SDL_Event e;
@@ -31,6 +47,10 @@ void loop()
             {
                 case SDL_QUIT:
                     quit = 1;
+                    break;
+                    
+                case SDL_WINDOWEVENT:
+                    resize(&e);
                     break;
             }
         }

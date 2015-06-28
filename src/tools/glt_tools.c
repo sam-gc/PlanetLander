@@ -17,7 +17,11 @@ ProgramInfo glob_info = {
     0,
     0,
     NULL,
-    NULL
+    NULL,
+
+    {
+        640, 480, 1.33333
+    }
 };
 
 ProgramLocations glob_locs = {
@@ -105,8 +109,8 @@ int glt_init()
 #endif
 
     glob_info.window = SDL_CreateWindow("Planet Lander", SDL_WINDOWPOS_UNDEFINED,
-            SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT,
-            SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
+            SDL_WINDOWPOS_UNDEFINED, glob_info.winfo.width, glob_info.winfo.height,
+            SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
 
     if(!glob_info.window)
     {

@@ -4,10 +4,11 @@
 #include <SDL.h>
 #include <SDL_opengl.h>
 
-#define SCREEN_WIDTH 640
-#define SCREEN_HEIGHT 480
-
-#define ASPECT_RATIO (SCREEN_WIDTH / (float)SCREEN_HEIGHT)
+typedef struct {
+    int width;
+    int height;
+    float aspectRatio;
+} WindowInfo;
 
 typedef struct {
     GLuint program;
@@ -15,6 +16,8 @@ typedef struct {
     GLuint fragmentShader;
     SDL_Window *window;
     SDL_GLContext context;
+
+    WindowInfo winfo;
 } ProgramInfo;
 
 typedef struct {

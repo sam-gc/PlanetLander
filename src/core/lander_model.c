@@ -37,7 +37,7 @@ void lndr_render(Lander *lander)
 
     mat4x4 mv;
 
-    mat4x4_scale_aniso(mv, ident, 1 / ASPECT_RATIO, 1.0, 1.0);
+    mat4x4_scale_aniso(mv, ident, 1 / glob_info.winfo.aspectRatio, 1.0, 1.0);
 
     mat4x4 mvo;
     mat4x4_transpose(mvo, mv);
