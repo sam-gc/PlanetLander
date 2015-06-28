@@ -76,7 +76,10 @@ int glt_init_gl()
     glLinkProgram(glob_info.program);
 
     glob_locs.aVertexPosition = glGetAttribLocation(glob_info.program, "aPosition");
+    glob_locs.aColor = glGetAttribLocation(glob_info.program, "aColor");
     glob_locs.uMVMatrix = glGetUniformLocation(glob_info.program, "uMV");
+    glob_locs.uPerVertexColor = glGetUniformLocation(glob_info.program, "uPerVertexColor");
+    glob_locs.uColor = glGetUniformLocation(glob_info.program, "uColor");
 
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 

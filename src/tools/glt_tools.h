@@ -19,6 +19,10 @@ typedef struct {
 
 typedef struct {
     GLint aVertexPosition;
+    GLint aColor;
+    
+    GLint uPerVertexColor;
+    GLint uColor;
     GLint uMVMatrix;
 } ProgramLocations;
 

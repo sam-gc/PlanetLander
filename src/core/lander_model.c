@@ -5,10 +5,26 @@
 
 static GLfloat position_data[];
 
+void lndr_gen_colors(GLfloat *buf)
+{
+    int i;
+    for(i = 0; i < 56 * 3; i += 3)
+    {
+        buf[i] = i % 2 ? 1 : 0;
+        buf[i + 1] = 0;
+        buf[i + 2] = i % 2 ? 0 : 1;
+    }
+}
+
 Lander lndr_new()
 {
+    GLfloat cbuf[56 * 3];
+    lndr_gen_colors(cbuf);
+
     Lander lander;
-    lander.mesh = mh_make(position_data, 112);
+    lander.mesh = mh_make(position_data, NULL, 56);
+
+    mh_set_u_color(&lander.mesh, 1, 1, 0);
 
     return lander;
 }
@@ -26,6 +42,8 @@ void lndr_render(Lander *lander)
     mat4x4 mvo;
     mat4x4_transpose(mvo, mv);
     glUniformMatrix4fv(glob_locs.uMVMatrix, 1, GL_FALSE, (GLfloat *)mvo);
+
+    mh_prepare_for_render(&lander->mesh);
 
     glDrawArrays(GL_LINES, 0, 112);
     glBindVertexArray(0);
