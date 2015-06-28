@@ -32,17 +32,14 @@ Lander lndr_new()
 void lndr_render(Lander *lander)
 {
     glBindVertexArray(lander->mesh.VAO);
-    mat4x4 ident;
+
+    mat4x4 ident, mv, temp;
     mat4x4_identity(ident);
 
-    mat4x4 mv;
+    mat4x4_scale_aniso(temp, ident, 0.5, 0.5, 0.5);
+    mat4x4_transpose(mv, temp);
 
-    mat4x4_scale_aniso(mv, ident, 1 / glob_info.winfo.aspectRatio, 1.0, 1.0);
-
-    mat4x4 mvo;
-    mat4x4_transpose(mvo, mv);
-    glUniformMatrix4fv(glob_locs.uMVMatrix, 1, GL_FALSE, (GLfloat *)mvo);
-
+    glUniformMatrix4fv(glob_locs.uMVMatrix, 1, GL_FALSE, (GLfloat *)mv);
     mh_prepare_for_render(&lander->mesh);
 
     glDrawArrays(GL_LINES, 0, 112);

@@ -26,6 +26,11 @@ ProgramInfo glob_info = {
 
 ProgramLocations glob_locs = {
     -1,
+    -1,
+
+    -1,
+    -1,
+    -1,
     -1
 };
 
@@ -84,6 +89,7 @@ int glt_init_gl()
     glob_locs.uMVMatrix = glGetUniformLocation(glob_info.program, "uMV");
     glob_locs.uPerVertexColor = glGetUniformLocation(glob_info.program, "uPerVertexColor");
     glob_locs.uColor = glGetUniformLocation(glob_info.program, "uColor");
+    glob_locs.uPMatrix = glGetUniformLocation(glob_info.program, "uP");
 
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
@@ -159,5 +165,15 @@ void glt_shutdown()
     glob_info.window = NULL;
 
     SDL_Quit();
+}
+
+void glt_build_perspective_matrix(mat4x4 *P)
+{
+    mat4x4 ident, temp;
+    mat4x4_identity(ident);
+
+    mat4x4_scale_aniso(temp, ident, 1 / glob_info.winfo.aspectRatio, 1.0, 1.0);
+
+    mat4x4_transpose(*P, temp);
 }
 

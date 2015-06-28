@@ -3,6 +3,7 @@
 
 #include <SDL.h>
 #include <SDL_opengl.h>
+#include "tools/linmath.h"
 
 typedef struct {
     int width;
@@ -27,6 +28,7 @@ typedef struct {
     GLint uPerVertexColor;
     GLint uColor;
     GLint uMVMatrix;
+    GLint uPMatrix;
 } ProgramLocations;
 
 extern ProgramInfo glob_info;
@@ -35,5 +37,6 @@ extern ProgramLocations glob_locs;
 long glt_millis();
 int glt_init();
 void glt_shutdown();
+void glt_build_perspective_matrix(mat4x4 *P);
 
 #endif

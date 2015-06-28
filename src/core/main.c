@@ -1,14 +1,20 @@
 #include <stdio.h>
+#include <GL/glew.h>
 #include "tools/glt_tools.h"
+#include "tools/linmath.h"
 #include "core/lander_model.h"
 
 // #define DEBUG_FRAMERATE
 
 static Lander lander;
+static mat4x4 perspectiveMatrix;
 
 void render()
 {
     glClear(GL_COLOR_BUFFER_BIT);
+
+    glUniformMatrix4fv(glob_locs.uPMatrix, 1, GL_FALSE, (GLfloat *)perspectiveMatrix);
+
     lndr_render(&lander);
     SDL_GL_SwapWindow(glob_info.window);
 }
@@ -27,6 +33,7 @@ void resize(SDL_Event *e)
     glob_info.winfo.aspectRatio = aspect;
 
     glViewport(0, 0, width, height);
+    glt_build_perspective_matrix(&perspectiveMatrix);
 }
 
 void loop()
@@ -77,6 +84,8 @@ int main(int argc, char *argv[])
         printf("Failure!!!\n");
         return -1;
     }
+
+    glt_build_perspective_matrix(&perspectiveMatrix);
 
     lander = lndr_new();
 
