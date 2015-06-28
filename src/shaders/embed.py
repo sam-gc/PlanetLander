@@ -8,6 +8,6 @@ f.close()
 
 o = open(fname.split('.')[0] + '__gen.h', 'w')
 for line in lines:
-    o.write('"' + line.strip() + '"\n')
+    o.write('"' + line.strip() + '\\n"\n')
 
 o.close()

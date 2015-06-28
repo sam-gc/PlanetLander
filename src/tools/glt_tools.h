@@ -25,7 +25,8 @@ typedef struct {
 extern ProgramInfo glob_info;
 extern ProgramLocations glob_locs;
 
+long glt_millis();
 int glt_init();
-void glt_print_shader_status();
+void glt_shutdown();
 
 #endif
