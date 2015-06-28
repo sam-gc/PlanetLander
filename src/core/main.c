@@ -1,11 +1,15 @@
 #include <stdio.h>
 #include "tools/glt_tools.h"
+#include "core/lander_model.h"
 
 // #define DEBUG_FRAMERATE
+
+static Lander lander;
 
 void render()
 {
     glClear(GL_COLOR_BUFFER_BIT);
+    lndr_render(&lander);
     SDL_GL_SwapWindow(glob_info.window);
 }
 
@@ -53,6 +57,8 @@ int main(int argc, char *argv[])
         printf("Failure!!!\n");
         return -1;
     }
+
+    lander = lndr_new();
 
     loop();
 

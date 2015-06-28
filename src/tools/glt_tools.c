@@ -80,6 +80,8 @@ int glt_init_gl()
 
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
+    glUseProgram(glob_info.program);
+
     return 1;
 }
 
