@@ -29,6 +29,7 @@ typedef struct {
     mat4x4 jetMatrix;
 
     JetState jetState;
+    JetState prevJetState;
     long jetFrames;
 
 } Lander;

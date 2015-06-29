@@ -6,8 +6,12 @@
 #include "tools/glt_tools.h"
 
 #define PI 3.14159265359
-#define DEFAULT_SCALE 0.06
-//#define DEFAULT_SCALE 0.3
+#define PI_2 1.570796326795
+//#define DEFAULT_SCALE 0.06
+#define DEFAULT_SCALE 0.3
+
+#define FLAME_GROW_RATE 150.0
+#define FLAME_THRUST 0.5
 
 static GLfloat position_data[];
 
@@ -52,7 +56,7 @@ void lndr_gen_mv_matrix(Lander *lander)
     gly++;
 
     mat4x4_scale_aniso(temp, ident, DEFAULT_SCALE, DEFAULT_SCALE, DEFAULT_SCALE);
-    //mat4x4_translate_in_place(temp, glx, gly, 0);
+    
     mat4x4_rotate_Z(temp, temp, lander->rotation);
     mat4x4_translate(trans, glx, gly, 0);
     mat4x4_mul(ident, trans, temp);
@@ -65,10 +69,9 @@ void lndr_gen_jet_mv_matrix(Lander *lander)
         return;
 
     float scale = 0;
-    if(lander->jetState == JS_INCREASING)
-        scale = lander->jetFrames / 500.;
-
-    if(lander->jetState == JS_ON)
+    if(lander->jetState == JS_INCREASING || lander->jetState == JS_DECREASING)
+        scale = lander->jetFrames / FLAME_GROW_RATE;
+    else if(lander->jetState == JS_ON)
     {
         if(lander->jetFrames < 10)
             return;
@@ -100,12 +103,12 @@ Lander lndr_new()
 
     lander.dX = 150;
     lander.dY = 50;
-    lander.dYY = 5;
-    lander.dR = 30;
-    lander.rotation = -PI / 4;
+    lander.dYY = 8;
+    lander.dR = PI;
+    lander.rotation = PI / 2;
     lander.x = 30;
     lander.y = 30;
-    lander.jetState = JS_ON;
+    lander.jetState = lander.prevJetState = JS_OFF;
     lander.jetFrames = 0;
 
     lndr_gen_mv_matrix(&lander);
@@ -116,35 +119,93 @@ Lander lndr_new()
     return lander;
 }
 
+double lndr_thrust_for_state(Lander *lander)
+{
+    double scale = 0;
+    switch(lander->jetState)
+    {
+        case JS_OFF:
+            return 0;
+        case JS_INCREASING:
+        case JS_DECREASING:
+            scale = lander->jetFrames / FLAME_GROW_RATE;
+            break;
+        case JS_ON:
+            scale = 1.0;
+    }
+
+    return scale * FLAME_THRUST; 
+}
+
 void lndr_step(Lander *lander, float dT)
 {
     lander->x += lander->dX * dT;
     lander->y += lander->dY * dT;
     lander->dY += lander->dYY * dT;
 
-    lander->jetFrames += dT * 1000;
+    // Handle rotations
+    if((glob_game.keysDown & GMK_LEFT) && lander->rotation < PI_2)
+    {
+        float dif = lander->dR * dT;
+        if(lander->rotation + dif < PI_2)
+            lander->rotation += dif;
+        else
+            lander->rotation = PI_2;
+    }
+    if((glob_game.keysDown & GMK_RIGHT) && lander->rotation > -PI_2)
+    {
+        float dif = lander->dR * dT;
+        if(lander->rotation - dif > -PI_2)
+            lander->rotation -= dif;
+        else
+            lander->rotation = -PI_2;
+    }
 
+    // Make zero sticky to make sure a vertical landing is possible
+    if(fabs(lander->rotation) < 0.001)
+        lander->rotation = 0;
+
+    // Deal with thrust
+    double thrust = lndr_thrust_for_state(lander);
+    lander->dX += -sin(lander->rotation) * thrust;
+    lander->dY += -cos(lander->rotation) * thrust;
+
+    // Handle jet animations
+    if(lander->jetState == JS_ON || lander->jetState == JS_INCREASING)
+        lander->jetFrames += dT * 1000;
+    else if(lander->jetState == JS_DECREASING)
+        lander->jetFrames -= dT * 1000;
+
+    if((glob_game.keysDown & GMK_UP) && lander->prevJetState != JS_INCREASING && lander->prevJetState != JS_ON)
+        lander->jetState = JS_INCREASING;
+    else if(lander->jetFrames > FLAME_GROW_RATE && lander->jetState == JS_INCREASING)
+    {
+        lander->jetFrames = 0;
+        lander->jetState = JS_ON;
+    }
+    else if(!(glob_game.keysDown & GMK_UP) && lander->prevJetState == JS_ON)
+    {
+        lander->jetFrames = FLAME_GROW_RATE;
+        lander->jetState = JS_DECREASING;
+    }
+    else if(!(glob_game.keysDown & GMK_UP) && lander->prevJetState == JS_INCREASING)
+        lander->jetState = JS_DECREASING;
+    else if(lander->jetState == JS_DECREASING && lander->jetFrames <= 0)
+    {
+        lander->jetState = JS_OFF;
+        lander->jetFrames = 0;
+    }
+
+    // Save the current jet state
+    lander->prevJetState = lander->jetState;
+
+    // Generate new matrices
     lndr_gen_mv_matrix(lander);
     lndr_gen_jet_mv_matrix(lander);
 }
 
 void lndr_render(Lander *lander)
 {
-
-    /*
-    mat4x4 ident, mv, temp;
-    mat4x4_identity(ident);
-
-    mat4x4_scale_aniso(temp, ident, 0.5, 0.5, 0.5);
-    mat4x4_transpose(mv, temp);*/
-
-    glUniformMatrix4fv(glob_locs.uMVMatrix, 1, GL_FALSE, (GLfloat *)lander->mvMatrix);
-
-    glBindVertexArray(lander->mesh.VAO);
-    mh_prepare_for_render(&lander->mesh);
-    glDrawArrays(GL_LINES, 0, 56);
-    glBindVertexArray(0);
-
     if(lander->jetState != JS_OFF)
     {
         mat4x4 mv;
@@ -156,6 +217,13 @@ void lndr_render(Lander *lander)
         glDrawArrays(GL_LINES, 0, 8);
         glBindVertexArray(0);
     }
+
+    glUniformMatrix4fv(glob_locs.uMVMatrix, 1, GL_FALSE, (GLfloat *)lander->mvMatrix);
+
+    glBindVertexArray(lander->mesh.VAO);
+    mh_prepare_for_render(&lander->mesh);
+    glDrawArrays(GL_LINES, 0, 56);
+    glBindVertexArray(0);
 }
 
 static GLfloat position_data[] = {

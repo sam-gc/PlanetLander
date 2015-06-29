@@ -8,7 +8,7 @@
 static Lander lander;
 static mat4x4 perspectiveMatrix;
 
-GameInfo glob_game = {0, 1.0, 1000, 1000};
+GameInfo glob_game = {0, 1.0, 1000, 1000, 0};
 
 void gm_render()
 {
@@ -39,6 +39,37 @@ void gm_resize(SDL_Event *e)
     glt_build_perspective_matrix(&perspectiveMatrix);
 }
 
+void gm_handle_key_event(SDL_Event *e)
+{
+    SDL_KeyboardEvent evt = e->key;
+    if(evt.type != SDL_KEYDOWN && evt.type != SDL_KEYUP)
+        return;
+
+    unsigned mappedKey = 0;
+    switch(evt.keysym.sym)
+    {
+        case SDLK_UP:
+            mappedKey = GMK_UP;
+            break;
+        case SDLK_DOWN:
+            mappedKey = GMK_DOWN;
+            break;
+        case SDLK_LEFT:
+            mappedKey = GMK_LEFT;
+            break;
+        case SDLK_RIGHT:
+            mappedKey = GMK_RIGHT;
+            break;
+        default:
+            return;
+    }
+
+    if(evt.type == SDL_KEYDOWN)
+        glob_game.keysDown |= mappedKey;
+    else
+        glob_game.keysDown ^= mappedKey;
+}
+
 void gm_loop()
 {
     SDL_Event e;
@@ -62,6 +93,11 @@ void gm_loop()
                     
                 case SDL_WINDOWEVENT:
                     gm_resize(&e);
+                    break;
+
+                case SDL_KEYUP:
+                case SDL_KEYDOWN:
+                    gm_handle_key_event(&e);
                     break;
             }
         }
