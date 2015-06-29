@@ -4,6 +4,9 @@
 #include "glt_tools.h"
 #include "tools/linmath.h"
 
+#define SCREEN_WIDTH 800
+#define SCREEN_HEIGHT 600
+
 const char *vertex_shader_code[] = {
 #include "shaders/vertex__gen.h"
 };
@@ -20,7 +23,7 @@ ProgramInfo glob_info = {
     NULL,
 
     {
-        640, 480, 1.33333
+        SCREEN_WIDTH, SCREEN_HEIGHT, 1.3333333
     }
 };
 
@@ -106,6 +109,9 @@ int glt_init()
         return 0;
     }
 
+    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
+    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 2);
+
 #ifdef __APPLE__
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 #else
@@ -116,7 +122,7 @@ int glt_init()
 
     glob_info.window = SDL_CreateWindow("Planet Lander", SDL_WINDOWPOS_UNDEFINED,
             SDL_WINDOWPOS_UNDEFINED, glob_info.winfo.width, glob_info.winfo.height,
-            SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
+            SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);// | SDL_WINDOW_RESIZABLE);
 
     if(!glob_info.window)
     {
