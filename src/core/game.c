@@ -4,6 +4,7 @@
 #include "tools/linmath.h"
 #include "core/lander_model.h"
 #include "core/game.h"
+#include "core/mesh.h"
 
 static Lander lander;
 static mat4x4 perspectiveMatrix;
@@ -14,9 +15,22 @@ void gm_render()
 {
     glClear(GL_COLOR_BUFFER_BIT);
 
+    // The below code will cause the camera to follow the lander and scale it up without
+    // affecting game speed.
+    /*
+    mat4x4 p, temp, ident;
+    mat4x4_identity(ident);
+    mat4x4_scale_aniso(temp, ident, 2, 2, 2);
+    mat4x4_translate_in_place(temp, (-2 / glob_game.ppw) * lander.x + 1, (2 / glob_game.pph) * lander.y - 1, 0);
+    mat4x4_transpose(p, temp);
+    //mat4x4_mul(temp, perspectiveMatrix, p);
+    mat4x4_mul(temp, p, perspectiveMatrix);*/
+
+    //glUniformMatrix4fv(glob_locs.uPMatrix, 1, GL_FALSE, (GLfloat *)temp);
     glUniformMatrix4fv(glob_locs.uPMatrix, 1, GL_FALSE, (GLfloat *)perspectiveMatrix);
 
     lndr_render(&lander);
+
     SDL_GL_SwapWindow(glob_info.window);
 }
 
