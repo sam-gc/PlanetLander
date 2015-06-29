@@ -4,6 +4,13 @@
 #include "tools/linmath.h"
 #include "core/mesh.h"
 
+typedef enum {
+    JS_OFF = 0,
+    JS_INCREASING,
+    JS_ON,
+    JS_DECREASING
+} JetState;
+
 typedef struct {
     Mesh mesh;
     mat4x4 mvMatrix;
@@ -11,9 +18,19 @@ typedef struct {
     double dY;
     double dYY;
     double dX;
+    double dR;
+
+    double rotation;
 
     double x;
     double y;
+
+    Mesh jetMesh;
+    mat4x4 jetMatrix;
+
+    JetState jetState;
+    long jetFrames;
+
 } Lander;
 
 Lander lndr_new();

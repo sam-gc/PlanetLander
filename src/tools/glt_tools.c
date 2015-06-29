@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <GL/glew.h>
 #include <sys/timeb.h>
+#include <time.h>
 #include "glt_tools.h"
 #include "tools/linmath.h"
 
@@ -103,6 +104,7 @@ int glt_init_gl()
 
 int glt_init()
 {
+    srand(time(NULL));
     if(SDL_Init(SDL_INIT_VIDEO) < 0)
     {
         printf("Failed to initialize SDL. Error: %s\n", SDL_GetError());
