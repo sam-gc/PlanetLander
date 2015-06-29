@@ -7,11 +7,11 @@
 
 #define PI 3.14159265359
 #define PI_2 1.570796326795
-//#define DEFAULT_SCALE 0.06
-#define DEFAULT_SCALE 0.3
+#define DEFAULT_SCALE 0.06
+//#define DEFAULT_SCALE 0.3
 
 #define FLAME_GROW_RATE 150.0
-#define FLAME_THRUST 0.5
+#define FLAME_THRUST 0.3
 
 static GLfloat position_data[];
 
@@ -101,8 +101,8 @@ Lander lndr_new()
     lander.mesh = mh_make(position_data, NULL, 56);
     lander.jetMesh = mh_make(position_data + 112, cbuf, 8);
 
-    lander.dX = 150;
-    lander.dY = 50;
+    lander.dX = 70;
+    lander.dY = 10;
     lander.dYY = 8;
     lander.dR = PI;
     lander.rotation = PI / 2;
