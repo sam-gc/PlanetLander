@@ -1,5 +1,5 @@
 #include <math.h>
-#include "GL/glew.h"
+#include <GL/glew.h>
 #include "core/lander_model.h"
 #include "core/game.h"
 #include "tools/linmath.h"
@@ -47,13 +47,13 @@ void lndr_gen_mv_matrix(Lander *lander)
     mat4x4_identity(ident);
 
     float glx = 2 / glob_game.ppw;
-    float gly = -2 / glob_game.pph;
+    float gly = 2 / glob_game.pph;
 
     glx *= lander->x;
     gly *= lander->y;
 
     glx--;
-    gly++;
+    gly--;
 
     mat4x4_scale_aniso(temp, ident, DEFAULT_SCALE, DEFAULT_SCALE, DEFAULT_SCALE);
     
@@ -102,12 +102,12 @@ Lander lndr_new()
     lander.jetMesh = mh_make(position_data + 112, cbuf, 8);
 
     lander.dX = 70;
-    lander.dY = 10;
-    lander.dYY = 8;
+    lander.dY = -10;
+    lander.dYY = -8;
     lander.dR = PI;
     lander.rotation = PI / 2;
     lander.x = 30;
-    lander.y = 30;
+    lander.y = 600;
     lander.jetState = lander.prevJetState = JS_OFF;
     lander.jetFrames = 0;
 
@@ -168,7 +168,7 @@ void lndr_step(Lander *lander, float dT)
     // Deal with thrust
     double thrust = lndr_thrust_for_state(lander);
     lander->dX += -sin(lander->rotation) * thrust;
-    lander->dY += -cos(lander->rotation) * thrust;
+    lander->dY -= -cos(lander->rotation) * thrust;
 
     // Handle jet animations
     if(lander->jetState == JS_ON || lander->jetState == JS_INCREASING)

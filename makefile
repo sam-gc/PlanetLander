@@ -4,8 +4,8 @@ TOOLS_SOURCES=$(wildcard src/tools/*.c)
 CORE_OBJ_FILES=$(addprefix obj/core/,$(notdir $(CORE_SOURCES:.c=.o)))
 TOOLS_OBJ_FILES=$(addprefix obj/tools/,$(notdir $(TOOLS_SOURCES:.c=.o)))
 
-CFLAGS=-g -Isrc -std=c99 -Wall `sdl2-config --cflags`
-LDFLAGS=-lm -lGL -lGLEW `sdl2-config --libs`
+CFLAGS=-g -Isrc -std=c99 -Wall
+LDFLAGS=-lm -lGLEW -framework OpenGL -framework SDL2
 CC=gcc
 MKDIR=mkdir -p
 SHADER_GEN=python2 src/shaders/embed.py

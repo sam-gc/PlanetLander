@@ -1,4 +1,4 @@
-#include "GL/glew.h"
+#include <GL/glew.h>
 #include "core/mesh.h"
 #include "tools/glt_tools.h"
 

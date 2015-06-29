@@ -1,15 +1,22 @@
-#include <GL/glew.h>
 #include <stdio.h>
 #include "tools/glt_tools.h"
 #include "tools/linmath.h"
 #include "core/lander_model.h"
 #include "core/game.h"
 #include "core/mesh.h"
+#include "core/terrain.h"
 
 static Lander lander;
+static Terrain terrain;
 static mat4x4 perspectiveMatrix;
 
+float Lx = -1;
+float Ly = -1;
+float Lw = -1;
+float Lh = -1;
+
 GameInfo glob_game = {0, 1.0, 1000, 1000, 0};
+#define DEBUG_FRAMERATE
 
 void gm_render()
 {
@@ -17,19 +24,38 @@ void gm_render()
 
     // The below code will cause the camera to follow the lander and scale it up without
     // affecting game speed.
-    /*
-    mat4x4 p, temp, ident;
-    mat4x4_identity(ident);
-    mat4x4_scale_aniso(temp, ident, 2, 2, 2);
-    mat4x4_translate_in_place(temp, (-2 / glob_game.ppw) * lander.x + 1, (2 / glob_game.pph) * lander.y - 1, 0);
-    mat4x4_transpose(p, temp);
-    //mat4x4_mul(temp, perspectiveMatrix, p);
-    mat4x4_mul(temp, p, perspectiveMatrix);*/
+    
+    if(tr_altitude_at(&terrain, lander.x, lander.y) < 200)
+    {
+        mat4x4 p, temp, ident;
+        mat4x4_identity(ident);
+        mat4x4_scale_aniso(temp, ident, 2, 2, 2);
 
-    //glUniformMatrix4fv(glob_locs.uPMatrix, 1, GL_FALSE, (GLfloat *)temp);
-    glUniformMatrix4fv(glob_locs.uPMatrix, 1, GL_FALSE, (GLfloat *)perspectiveMatrix);
+        float w = glob_game.ppw;
+        float h = glob_game.pph;
+
+        if(Lx < 0)
+        {
+            mat4x4_translate_in_place(temp, (-2 / glob_game.ppw) * lander.x + 1, (-2 / glob_game.pph) * lander.y + 1, 0);
+            Lx = lander.x - w / 2;
+            Ly = lander.y - h / 2;
+            Lw = w;
+            Lh = h;
+        }
+        else if(lander.x - 10 < Lx)
+        {
+            mat4x4_translate_in_place(temp, (-2 / glob_game.ppw) * lander
+        }
+        mat4x4_transpose(p, temp);
+        mat4x4_mul(temp, p, perspectiveMatrix);
+
+        glUniformMatrix4fv(glob_locs.uPMatrix, 1, GL_FALSE, (GLfloat *)temp);
+    }
+    else
+        glUniformMatrix4fv(glob_locs.uPMatrix, 1, GL_FALSE, (GLfloat *)perspectiveMatrix);
 
     lndr_render(&lander);
+    tr_render(&terrain);
 
     SDL_GL_SwapWindow(glob_info.window);
 }
@@ -124,11 +150,13 @@ void gm_loop()
 
         lndr_step(&lander, dT);
 
+
 #ifdef DEBUG_FRAMERATE
-        if(glt_millis() - then >= 1000)
+        if(glt_millis() - then >= 250)
         {
+        printf("%lf\n", tr_altitude_at(&terrain, lander.x, lander.y));
             then = glt_millis();
-            printf("Frame rate: %d\n", frames);
+            //printf("Frame rate: %d\n", frames);
             frames = 0;
         }
 
@@ -142,6 +170,7 @@ void gm_start()
     glt_build_perspective_matrix(&perspectiveMatrix);
 
     lander = lndr_new();
+    terrain = tr_make();
     gm_loop();
 }
 

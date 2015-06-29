@@ -124,7 +124,7 @@ int glt_init()
 
     glob_info.window = SDL_CreateWindow("Planet Lander", SDL_WINDOWPOS_UNDEFINED,
             SDL_WINDOWPOS_UNDEFINED, glob_info.winfo.width, glob_info.winfo.height,
-            SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);// | SDL_WINDOW_RESIZABLE);
+            SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
 
     if(!glob_info.window)
     {
@@ -180,7 +180,7 @@ void glt_build_perspective_matrix(mat4x4 *P)
     mat4x4 ident, temp;
     mat4x4_identity(ident);
 
-    mat4x4_scale_aniso(temp, ident, 1 / glob_info.winfo.aspectRatio, 1.0, 1.0);
+    mat4x4_scale_aniso(-temp, ident, 1 / glob_info.winfo.aspectRatio, 1.0, 1.0);
 
     mat4x4_transpose(*P, temp);
 }
