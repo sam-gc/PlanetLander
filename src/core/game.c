@@ -25,6 +25,7 @@ void gm_render()
     // The below code will cause the camera to follow the lander and scale it up without
     // affecting game speed.
     
+    /*
     if(tr_altitude_at(&terrain, lander.x, lander.y) < 200)
     {
         mat4x4 p, temp, ident;
@@ -51,7 +52,7 @@ void gm_render()
 
         glUniformMatrix4fv(glob_locs.uPMatrix, 1, GL_FALSE, (GLfloat *)temp);
     }
-    else
+    else*/
         glUniformMatrix4fv(glob_locs.uPMatrix, 1, GL_FALSE, (GLfloat *)perspectiveMatrix);
 
     lndr_render(&lander);

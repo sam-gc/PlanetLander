@@ -1,7 +1,7 @@
 #ifndef MESH_H
 #define MESH_H
 
-#include <SDL2/SDL_opengl.h>
+#include "tools/platform_headers.h"
 
 typedef struct {
     GLuint VAO;

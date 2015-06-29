@@ -180,7 +180,7 @@ void glt_build_perspective_matrix(mat4x4 *P)
     mat4x4 ident, temp;
     mat4x4_identity(ident);
 
-    mat4x4_scale_aniso(-temp, ident, 1 / glob_info.winfo.aspectRatio, 1.0, 1.0);
+    mat4x4_scale_aniso(temp, ident, 1 / glob_info.winfo.aspectRatio, 1.0, 1.0);
 
     mat4x4_transpose(*P, temp);
 }

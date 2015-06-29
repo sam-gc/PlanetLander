@@ -1,8 +1,7 @@
 #ifndef GLT_TOOLS_H
 #define GLT_TOOLS_H
 
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_opengl.h>
+#include "tools/platform_headers.h"
 #include "tools/linmath.h"
 
 typedef struct {
