@@ -28,9 +28,6 @@ void cam_center_on(Camera *cam, double x, double y)
 {
     cam->x = x - cam->w / 2;
     cam->y = y - cam->h / 2;
-
-    cam->x *= -1;
-    cam->y *= -1;
 }
 
 void cam_set_zoom(Camera *cam, double zoom)
@@ -56,9 +53,14 @@ void cam_prepare_matrix(Camera *cam)
 
     */
     mat4x4_scale_aniso(temp, ident, cam->scale * glx, cam->scale * gly, 1);
-    
-    mat4x4_translate(trans, cam->x - cam->w / 2, cam->y - cam->h / 2, 0);
+    mat4x4_translate(trans, -(cam->x + cam->w / 2), -(cam->y + cam->h / 2), 0);
     mat4x4_mul(ident, temp, trans);
+
+    /*
+    mat4x4_identity(temp);
+    mat4x4_scale_aniso(trans, temp, 1, -1, 1);
+    mat4x4_mul(temp, trans, ident);
+    */
     mat4x4_transpose(cam->matrix, ident);
 }
 

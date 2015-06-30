@@ -4,6 +4,7 @@
 #include <time.h>
 #include "glt_tools.h"
 #include "tools/linmath.h"
+#include "core/game.h"
 
 #define SCREEN_WIDTH 800
 #define SCREEN_HEIGHT 600
@@ -125,6 +126,8 @@ int glt_init()
     glob_info.window = SDL_CreateWindow("Planet Lander", SDL_WINDOWPOS_UNDEFINED,
             SDL_WINDOWPOS_UNDEFINED, glob_info.winfo.width, glob_info.winfo.height,
             SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
+
+    glob_game.pph = glob_game.ppw / glob_info.winfo.aspectRatio;
 
     if(!glob_info.window)
     {

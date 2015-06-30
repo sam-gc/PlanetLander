@@ -26,6 +26,11 @@ double max(double a, double b)
     return a > b ? a : b;
 }
 
+double min(double a, double b)
+{
+    return a < b ? a : b;
+}
+
 void gm_render()
 {
     glClear(GL_COLOR_BUFFER_BIT);
@@ -172,7 +177,7 @@ void gm_loop()
         if(alt < 150 && camera.scale == 1.0)
         {
             cam_set_zoom(&camera, 2.0);
-            cam_center_on(&camera, lander.x, lander.y);
+            cam_center_on(&camera, lander.x, lander.y - camera.h / 4);
         }
         else if(alt > 150 && camera.scale != 1.0)
         {
@@ -183,14 +188,25 @@ void gm_loop()
         {
             double x, y;
             x = y = 0;
-            if(camera.x + camera.w / 4 > lander.x)
-                x = -lander.dX * dT;
-            /*
-            else if(camera.x - camera.w / 3 > lander.x)
-                x = 1;
-                */
+            if(camera.x + camera.w / 8 > lander.x && lander.dX < 0)
+                x = lander.dX * dT;
+            else if(camera.x + camera.w / 4 > lander.x && lander.dX < 0)
+                x = max(lander.dX * dT, -0.4);
+            else if(camera.x + camera.w * (7./8) < lander.x && lander.dX > 0)
+                x = lander.dX * dT;
+            else if(camera.x + camera.w * 0.75 < lander.x && lander.dX > 0)
+                x = min(lander.dX * dT, 0.4);
 
-            cam_pan(&camera, x, -lander.dY * dT);
+            if(camera.y + camera.h / 8 > lander.y && lander.dY < 0)
+                y = lander.dY * dT;
+            else if(camera.y + camera.h / 4 > lander.y && lander.dY < 0)
+                y = max(lander.dY * dT, -0.4);
+            else if(camera.y + camera.h * (7./8) < lander.y && lander.dY > 0)
+                y = lander.dX * dT;
+            else if(camera.y + camera.h * 0.75 < lander.y && lander.dY > 0)
+                y = lander.dY * dT;
+
+            cam_pan(&camera, x, y);
         }
 
 #ifdef DEBUG_FRAMERATE
