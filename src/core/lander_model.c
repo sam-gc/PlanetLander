@@ -7,7 +7,7 @@
 
 #define PI 3.14159265359
 #define PI_2 1.570796326795
-#define DEFAULT_SCALE 0.06
+#define DEFAULT_SCALE 20
 //#define DEFAULT_SCALE 0.3
 
 #define FLAME_GROW_RATE 150.0
@@ -46,14 +46,21 @@ void lndr_gen_mv_matrix(Lander *lander)
     mat4x4 ident, temp, trans;
     mat4x4_identity(ident);
 
+    /*
     float glx = 2 / glob_game.ppw;
     float gly = 2 / glob_game.pph;
+    */
 
+    /*
     glx *= lander->x;
     gly *= lander->y;
 
     glx--;
     gly--;
+    */
+
+    float glx = lander->x;
+    float gly = lander->y;
 
     mat4x4_scale_aniso(temp, ident, DEFAULT_SCALE, DEFAULT_SCALE, DEFAULT_SCALE);
     

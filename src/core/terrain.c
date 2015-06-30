@@ -5,8 +5,8 @@
 #include "core/game.h"
 #include "tools/glt_tools.h"
 
-#define GRANULARITY 128
-#define SEVERITY 30
+#define GRANULARITY 300
+#define SEVERITY 60
 
 /*
 void tr_gen(GLfloat *buf, int ct, int severity)
@@ -35,6 +35,9 @@ GLfloat tr_gen_up(GLfloat *buf, int ct, int severity)
     for(i = 0; i < ct; i++)
     {
         int amt = rand() % severity + 1;
+        if(first + amt > 450)
+            amt = 0;
+
         buf[i * 2 + 1] = first + amt;
         first += amt;
     }
@@ -109,6 +112,7 @@ void tr_gen_matrix(Terrain *terrain)
     mat4x4 ident, temp, trans;
     mat4x4_identity(ident);
 
+    /*
     float glx = 0;
     float gly = 2 / glob_game.pph;
 
@@ -119,33 +123,40 @@ void tr_gen_matrix(Terrain *terrain)
 
     float scale = 2 / glob_game.ppw;
 
-    mat4x4_scale_aniso(temp, ident, scale, scale, scale);
+    */
+
+
+    //mat4x4_scale_aniso(temp, ident, scale, scale, scale);
     
-    mat4x4_translate(trans, glx, gly, 0);
-    mat4x4_mul(temp, trans, temp);
-    mat4x4_transpose(terrain->mvMatrix, temp);
+    //mat4x4_translate(trans, glx, gly, 0);
+    //mat4x4_mul(temp, trans, temp);
+    mat4x4_transpose(terrain->mvMatrix, ident);
 }
 
 Terrain tr_make()
 {
     GLfloat buf[GRANULARITY];
+
     
     buf[0] = 0;
     buf[1] = 10;
 
     //buf[GRANULARITY - 2] = glob_game.ppw;
     //buf[GRANULARITY - 1] = 10;
+    double step = glob_game.ppw / (GRANULARITY / 2);
 
     int i;
     for(i = 0; i < GRANULARITY / 2; i++)
     {
-        buf[i * 2] = i * (glob_game.ppw / (GRANULARITY / 2));
+        buf[i * 2] = i * step;
     }
 
     tr_gen(buf, GRANULARITY / 2, SEVERITY);
 
     Terrain terrain;
     terrain.mesh = mh_make(buf, NULL, GRANULARITY / 2);
+    mh_set_u_color(&terrain.mesh, 1, 1, 1);
+
     tr_gen_matrix(&terrain);
 
     GLfloat *data = malloc(GRANULARITY * sizeof(GLfloat));
