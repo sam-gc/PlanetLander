@@ -167,9 +167,9 @@ void gm_position_camera(double dT)
         else if(camera.y + camera.h / 4 > lander.y && lander.dY < 0)
             y = max(lander.dY * dT, -0.4);
         else if(camera.y + camera.h * (7./8) < lander.y && lander.dY > 0)
-            y = lander.dX * dT;
-        else if(camera.y + camera.h * 0.75 < lander.y && lander.dY > 0)
             y = lander.dY * dT;
+        else if(camera.y + camera.h * 0.75 < lander.y && lander.dY > 0)
+            y = min(lander.dY * dT, 0.4);
 
         cam_pan(&camera, x, y);
     }
@@ -179,6 +179,21 @@ void gm_position_camera(double dT)
         double scale = glob_game.pph / (camera.h + dif);
         cam_set_zoom(&camera, scale);
         camera.x = camera.y = 0;
+    }
+
+    if(alt > 150)
+    {
+        double x, y;
+        x = y = 0;
+        if(camera.x + camera.w / 8 > lander.x && lander.dX < 0)
+            x = lander.dX * dT;
+        else if(camera.x + camera.w / 4 > lander.x && lander.dX < 0)
+            x = max(lander.dX * dT, -0.4);
+        else if(camera.x + camera.w * (7./8) < lander.x && lander.dX > 0)
+            x = lander.dX * dT;
+        else if(camera.x + camera.w * 0.75 < lander.x && lander.dX > 0)
+            x = min(lander.dX * dT, 0.4);
+        cam_pan(&camera, x, y);
     }
 }
 
