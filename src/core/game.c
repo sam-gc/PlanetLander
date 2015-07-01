@@ -86,7 +86,7 @@ void gm_resize(SDL_Event *e)
     if(e->window.event != SDL_WINDOWEVENT_RESIZED)
         return;
 
-    printf("Resize\n");
+    SDL_Delay(50);
 
     int width = e->window.data1;
     int height = e->window.data2;
