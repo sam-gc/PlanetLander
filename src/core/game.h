@@ -6,6 +6,9 @@
 #define GMK_LEFT 4
 #define GMK_RIGHT 8
 
+#include "core/camera.h"
+#include "core/lander_model.h"
+
 typedef struct {
     int score;
     float zoom;
@@ -14,6 +17,8 @@ typedef struct {
     float pph;
 
     unsigned keysDown;
+    Camera *camera;
+    Lander *lander;
 } GameInfo;
 
 extern GameInfo glob_game;

@@ -5,8 +5,9 @@
 #include "core/game.h"
 #include "tools/glt_tools.h"
 
-#define GRANULARITY 300
+#define GRANULARITY 3000
 #define SEVERITY 60
+#define EXTRA 10
 
 /*
 void tr_gen(GLfloat *buf, int ct, int severity)
@@ -26,7 +27,7 @@ void tr_gen(GLfloat *buf, int ct, int severity)
     tr_gen(buf + ct / 2, ct / 2, severity * 0.5);
 }*/
 
-GLfloat tr_gen_up(GLfloat *buf, int ct, int severity)
+GLfloat tr_gen_up(GLfloat *buf, int ct, int severity, int where)
 {
     buf++;
     GLfloat first = *buf++;
@@ -35,7 +36,7 @@ GLfloat tr_gen_up(GLfloat *buf, int ct, int severity)
     for(i = 0; i < ct; i++)
     {
         int amt = rand() % severity + 1;
-        if(first + amt > 450)
+        if(first + amt > 450 && i < GRANULARITY / EXTRA)
             amt = 0;
 
         buf[i * 2 + 1] = first + amt;
@@ -88,7 +89,7 @@ void tr_gen(GLfloat *buf, int ct, int severity)
         if(which == 0)
             tr_gen_down(buf, length, severity);
         else if(which == 1)
-            tr_gen_up(buf, length, severity);
+            tr_gen_up(buf, length, severity, i);
         else
         {
             tr_gen_flat(buf, length);
@@ -101,7 +102,7 @@ void tr_gen(GLfloat *buf, int ct, int severity)
 
 double tr_altitude_at(Terrain *t, double x, double y)
 {
-    float amtpr = glob_game.ppw / (GRANULARITY / 2);
+    float amtpr = (glob_game.ppw * EXTRA) / (GRANULARITY / 2);
     int idx = (int)(x / amtpr) * 2;
 
     return y - t->data[idx + 1];
@@ -143,7 +144,7 @@ Terrain tr_make()
 
     //buf[GRANULARITY - 2] = glob_game.ppw;
     //buf[GRANULARITY - 1] = 10;
-    double step = glob_game.ppw / (GRANULARITY / 2);
+    double step = (glob_game.ppw * EXTRA) / (GRANULARITY / 2);
 
     int i;
     for(i = 0; i < GRANULARITY / 2; i++)
@@ -166,12 +167,27 @@ Terrain tr_make()
     return terrain;
 }
 
-void tr_render(Terrain *terrain)
+void tr_render_ex(Terrain *terrain, int idx)
 {
-    glUniformMatrix4fv(glob_locs.uMVMatrix, 1, GL_FALSE, (GLfloat *)terrain->mvMatrix);
+    mat4x4 ident, mv;
+    mat4x4_identity(ident);
+    mat4x4_translate_in_place(ident, glob_game.ppw * EXTRA * idx, 0, 0);
+    mat4x4_transpose(mv, ident);
+
+    glUniformMatrix4fv(glob_locs.uMVMatrix, 1, GL_FALSE, (GLfloat *)mv);
 
     glBindVertexArray(terrain->mesh.VAO);
     mh_prepare_for_render(&terrain->mesh);
     glDrawArrays(GL_LINE_STRIP, 0, GRANULARITY / 2);
     glBindVertexArray(0);
+
+    if(cam_point_is_visible(glob_game.camera, glob_game.ppw * idx - 1, glob_game.lander->y) && idx <= 0)
+        tr_render_ex(terrain, idx - 1);
+    if(cam_point_is_visible(glob_game.camera, glob_game.ppw * EXTRA * idx + glob_game.ppw * EXTRA + 1, glob_game.lander->y) && idx >= 0)
+        tr_render_ex(terrain, idx + 1);
+}
+
+void tr_render(Terrain *terrain)
+{
+    tr_render_ex(terrain, 0);
 }

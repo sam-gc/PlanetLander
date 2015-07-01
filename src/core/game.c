@@ -86,6 +86,8 @@ void gm_resize(SDL_Event *e)
     if(e->window.event != SDL_WINDOWEVENT_RESIZED)
         return;
 
+    printf("Resize\n");
+
     int width = e->window.data1;
     int height = e->window.data2;
     float aspect = (float)width / height;
@@ -133,6 +135,53 @@ void gm_handle_key_event(SDL_Event *e)
         glob_game.keysDown ^= mappedKey;
 }
 
+void gm_position_camera(double dT)
+{
+
+    float alt = tr_altitude_at(&terrain, lander.x, lander.y);
+    if(alt < 150 && camera.scale <= 1.0)
+    {
+        cam_set_zoom(&camera, 2.0);
+        cam_center_on(&camera, lander.x, lander.y - camera.h * 0.4);
+    }
+    else if(alt > 150 && camera.scale > 1.0)
+    {
+        cam_set_zoom(&camera, 1.0);
+        camera.x = camera.y = 0;
+    }
+    else if(camera.scale > 1.0)
+    {
+        double x, y;
+        x = y = 0;
+        if(camera.x + camera.w / 8 > lander.x && lander.dX < 0)
+            x = lander.dX * dT;
+        else if(camera.x + camera.w / 4 > lander.x && lander.dX < 0)
+            x = max(lander.dX * dT, -0.4);
+        else if(camera.x + camera.w * (7./8) < lander.x && lander.dX > 0)
+            x = lander.dX * dT;
+        else if(camera.x + camera.w * 0.75 < lander.x && lander.dX > 0)
+            x = min(lander.dX * dT, 0.4);
+
+        if(camera.y + camera.h / 8 > lander.y && lander.dY < 0)
+            y = lander.dY * dT;
+        else if(camera.y + camera.h / 4 > lander.y && lander.dY < 0)
+            y = max(lander.dY * dT, -0.4);
+        else if(camera.y + camera.h * (7./8) < lander.y && lander.dY > 0)
+            y = lander.dX * dT;
+        else if(camera.y + camera.h * 0.75 < lander.y && lander.dY > 0)
+            y = lander.dY * dT;
+
+        cam_pan(&camera, x, y);
+    }
+    else if(alt > 150 && lander.y + 30 > camera.max_h)
+    {
+        double dif = lander.y - (camera.h - 30);
+        double scale = glob_game.pph / (camera.h + dif);
+        cam_set_zoom(&camera, scale);
+        camera.x = camera.y = 0;
+    }
+}
+
 void gm_loop()
 {
     SDL_Event e;
@@ -173,41 +222,7 @@ void gm_loop()
 
         lndr_step(&lander, dT);
 
-        float alt = tr_altitude_at(&terrain, lander.x, lander.y);
-        if(alt < 150 && camera.scale == 1.0)
-        {
-            cam_set_zoom(&camera, 2.0);
-            cam_center_on(&camera, lander.x, lander.y - camera.h / 4);
-        }
-        else if(alt > 150 && camera.scale != 1.0)
-        {
-            cam_set_zoom(&camera, 1.0);
-            camera.x = camera.y = 0;
-        }
-        else if(camera.scale > 1.0)
-        {
-            double x, y;
-            x = y = 0;
-            if(camera.x + camera.w / 8 > lander.x && lander.dX < 0)
-                x = lander.dX * dT;
-            else if(camera.x + camera.w / 4 > lander.x && lander.dX < 0)
-                x = max(lander.dX * dT, -0.4);
-            else if(camera.x + camera.w * (7./8) < lander.x && lander.dX > 0)
-                x = lander.dX * dT;
-            else if(camera.x + camera.w * 0.75 < lander.x && lander.dX > 0)
-                x = min(lander.dX * dT, 0.4);
-
-            if(camera.y + camera.h / 8 > lander.y && lander.dY < 0)
-                y = lander.dY * dT;
-            else if(camera.y + camera.h / 4 > lander.y && lander.dY < 0)
-                y = max(lander.dY * dT, -0.4);
-            else if(camera.y + camera.h * (7./8) < lander.y && lander.dY > 0)
-                y = lander.dX * dT;
-            else if(camera.y + camera.h * 0.75 < lander.y && lander.dY > 0)
-                y = lander.dY * dT;
-
-            cam_pan(&camera, x, y);
-        }
+        gm_position_camera(dT);
 
 #ifdef DEBUG_FRAMERATE
         if(glt_millis() - then >= 250)
@@ -228,7 +243,13 @@ void gm_start()
     glt_build_perspective_matrix(&perspectiveMatrix);
 
     camera = cam_make();
+
+    glob_game.camera = &camera;
+
     lander = lndr_new();
+
+    glob_game.lander = &lander;
+
     terrain = tr_make();
     gm_loop();
 }

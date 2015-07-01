@@ -19,6 +19,7 @@ typedef struct {
 Camera cam_make();
 void cam_pan(Camera *cam, double x, double y);
 void cam_center_on(Camera *cam, double x, double y);
+int cam_point_is_visible(Camera *cam, double x, double y);
 void cam_set_zoom(Camera *cam, double zoom);
 void cam_prepare_matrix(Camera *cam);
 

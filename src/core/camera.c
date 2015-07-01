@@ -37,6 +37,12 @@ void cam_set_zoom(Camera *cam, double zoom)
     cam->h = cam->max_h / zoom;
 }
 
+int cam_point_is_visible(Camera *cam, double x, double y)
+{
+    return x > cam->x && x < cam->x + cam->w &&
+           y > cam->y && y < cam->y + cam->h;
+}
+
 void cam_prepare_matrix(Camera *cam)
 {
     mat4x4 ident, temp, trans;
