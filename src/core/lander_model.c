@@ -14,6 +14,7 @@
 #define FLAME_THRUST 0.3
 
 static GLfloat position_data[];
+static GLfloat bounding_box_data[];
 
 void lndr_gen_colors(GLfloat *buf)
 {
@@ -107,6 +108,9 @@ Lander lndr_new()
     Lander lander;
     lander.mesh = mh_make(position_data, NULL, 56);
     lander.jetMesh = mh_make(position_data + 112, cbuf, 8);
+    lander.boundingBoxMesh = mh_make(bounding_box_data, NULL, 4);
+    mh_set_u_color(&lander.boundingBoxMesh, 1, 0, 1);
+    lander.rendersBoundingBox = 0;
 
     lander.dX = 70;
     lander.dY = -10;
@@ -169,7 +173,7 @@ void lndr_step(Lander *lander, float dT)
     }
 
     // Make zero sticky to make sure a vertical landing is possible
-    if(fabs(lander->rotation) < 0.001)
+    if(fabs(lander->rotation) < 0.05)
         lander->rotation = 0;
 
     // Deal with thrust
@@ -231,7 +235,60 @@ void lndr_render(Lander *lander)
     mh_prepare_for_render(&lander->mesh);
     glDrawArrays(GL_LINES, 0, 56);
     glBindVertexArray(0);
+
+    if(lander->rendersBoundingBox)
+    {
+        glUniformMatrix4fv(glob_locs.uMVMatrix, 1, GL_FALSE, (GLfloat *)lander->mvMatrix);
+        glBindVertexArray(lander->boundingBoxMesh.VAO);
+        mh_prepare_for_render(&lander->boundingBoxMesh);
+        glDrawArrays(GL_LINE_STRIP, 0, 4);
+        glBindVertexArray(0);
+    }
 }
+
+void lndr_get_current_bounding_box(Lander *lander, GLfloat *buf)
+{
+    int i;
+    for(i = 0; i < 4; i += 2)
+    {
+        GLfloat x = bounding_box_data[i];
+        GLfloat y = bounding_box_data[i + 1];
+
+        vec4 pt = {x, y, 0, 0};
+        vec4 out;
+        mat4x4_mul_vec4(out, lander->mvMatrix, pt);
+        buf[i] = out[0];
+        buf[i + 1] = out[1];
+    }
+}
+
+void lndr_get_current_points(Lander *lander, GLfloat *buf)
+{
+    int i;
+    for(i = 0; i < 112; i += 2)
+    {
+        GLfloat x = position_data[i];
+        GLfloat y = position_data[i + 1];
+
+        vec4 pt = {x, y, 0, 1};
+        mat4x4 mat;
+        mat4x4_transpose(mat, lander->mvMatrix);
+        
+        vec4 out;
+        mat4x4_mul_vec4(out, mat, pt);
+        buf[i] = out[0];
+        buf[i + 1] = out[1];
+
+        //printf("%f %f\n", out[0], out[1]);
+    }
+}
+
+static GLfloat bounding_box_data[] = { 
+    -0.5, -0.4411765,
+    -0.5, 0.5,
+    0.5, 0.5,
+    0.5, -0.4411765
+};
 
 static GLfloat position_data[] = {
         -1.875000e-01, 0.500000,
@@ -272,6 +329,7 @@ static GLfloat position_data[] = {
         -3.750000e-01, -4.411765e-01,
         0.375000, -4.411765e-01,
         0.500000, -4.411765e-01,
+
         -9.375000e-02, -1.470588e-01,
         -9.375000e-02, -2.058824e-01,
         0.093750, -1.470588e-01,

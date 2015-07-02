@@ -207,6 +207,7 @@ void gm_loop()
     int frames = 0;
 #endif
 
+    int landerMayMove = 1;
     long ticks = SDL_GetTicks();
     while(!quit)
     {
@@ -235,16 +236,25 @@ void gm_loop()
         float dT = (now - ticks) / 1000.0;
         ticks = now;
 
-        lndr_step(&lander, dT);
+        if(landerMayMove)
+            lndr_step(&lander, dT);
 
         gm_position_camera(dT);
 
-#ifdef DEBUG_FRAMERATE
-        if(glt_millis() - then >= 250)
+        GLfloat points[112];
+        lndr_get_current_points(&lander, points);
+        if(!tr_test_collisions(&terrain, points, 56) && landerMayMove)
         {
-        printf("%lf\n", tr_altitude_at(&terrain, lander.x, lander.y));
+            landerMayMove = 0;
+            printf("Foot 1: %lf\nFoot 2: %lf\n", tr_accurate_altitude_at(&terrain, points[LANDER_FOOT_LEFT_INDEX], points[LANDER_FOOT_LEFT_INDEX + 1]),
+                    tr_accurate_altitude_at(&terrain, points[LANDER_FOOT_RIGHT_INDEX], points[LANDER_FOOT_RIGHT_INDEX + 1]));
+        }
+
+#ifdef DEBUG_FRAMERATE
+        if(glt_millis() - then >= 1000)
+        {
             then = glt_millis();
-            //printf("Frame rate: %d\n", frames);
+            printf("Frame rate: %d\n", frames);
             frames = 0;
         }
 

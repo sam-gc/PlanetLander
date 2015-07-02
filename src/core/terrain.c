@@ -100,12 +100,110 @@ void tr_gen(GLfloat *buf, int ct, int severity)
     }
 }
 
-double tr_altitude_at(Terrain *t, double x, double y)
+int tr_idx_for_x(Terrain *t, double x)
 {
     float amtpr = (glob_game.ppw * EXTRA) / (GRANULARITY / 2);
-    int idx = (int)(x / amtpr) * 2;
+    return (int)(x / amtpr) * 2;
+}
 
+double tr_min_4(double a, double b, double c, double d)
+{
+    double pts[] = {a, b, c, d};
+    double min = a;
+    int i;
+    for(i = 1; i < 4; i++)
+    {
+        if(pts[i] < min)
+            min = pts[i];
+    }
+
+    return min;
+}
+
+double tr_max_4(double a, double b, double c, double d)
+{
+    double pts[] = {a, b, c, d};
+    double max = a;
+    int i;
+    for(i = 1; i < 4; i++)
+    {
+        if(pts[i] > max)
+            max = pts[i];
+    }
+
+    return max;
+}
+
+double tr_altitude_at(Terrain *t, double x, double y)
+{
+    int idx = tr_idx_for_x(t, x);
     return y - t->data[idx + 1];
+}
+
+int tr_test_collisions(Terrain *t, GLfloat *pts, int count)
+{
+    int i;
+    for(i = 0; i < count * 2; i += 2)
+    {
+        double x0 = pts[i];
+        double y0 = pts[i + 1];
+
+        int idx = tr_idx_for_x(t, x0);
+        double x1 = t->data[idx];
+        double y1 = t->data[idx + 1];
+        double x2 = t->data[idx + 2];
+        double y2 = t->data[idx + 3];
+
+        double res = (y2 - y1)*x0 - (x2 - x1)*y0 + x2*y1 - y2*x1;
+
+        if(res >= 0)
+            return 0;
+    }
+
+    return 1;
+}
+
+double tr_accurate_altitude_at(Terrain *t, double x, double y)
+{
+    int idx = tr_idx_for_x(t, x);
+    double x1 = t->data[idx];
+    double y1 = t->data[idx + 1];
+    double x2 = t->data[idx + 2];
+    double y2 = t->data[idx + 3];
+
+    double res = (y2 - y1)*x - (x2 - x1)*y + x2*y1 - y2*x1;
+    return fabs(res) / sqrt(pow(y2 - y1, 2) + pow(x2 - x1, 2));
+}
+
+int tr_test_bounding_box(Terrain *terrain, GLfloat *bb)
+{
+    int imin = tr_min_4(bb[0], bb[2], bb[4], bb[6]);
+    int imax = tr_max_4(bb[1], bb[3], bb[5], bb[7]);
+
+    int i, j;
+    for(i = imin; i < imax; i++)
+    {
+        double px = terrain->data[i];
+        double py = terrain->data[i + 1];
+        for(j = 0; j < 8; j += 2)
+        {
+            double x1 = bb[j];
+            double y1 = bb[j + 1];
+            double x2 = bb[j % 8];
+            double y2 = bb[(j + 1) % 8];
+
+            double A = -(y2 - y1);
+            double B = x2 - x1;
+            double C = -(A * x1 + B * y1);
+
+            double D = A * px + B * py + C;
+
+            if(D >= 0)
+                return 0;
+        }
+    }
+
+    return 1;
 }
 
 void tr_gen_matrix(Terrain *terrain)
