@@ -18,7 +18,7 @@ float Ly = -1;
 float Lw = -1;
 float Lh = -1;
 
-GameInfo glob_game = {0, 1.0, 1000, 1000, 0};
+GameInfo glob_game = {0, 1.0, 0, 1000, 1000, 0};
 //#define DEBUG_FRAMERATE
 
 double max(double a, double b)
@@ -38,39 +38,6 @@ void gm_render()
     // The below code will cause the camera to follow the lander and scale it up without
     // affecting game speed.
     
-    /*
-    if(tr_altitude_at(&terrain, lander.x, lander.y) < 150)
-    {
-        mat4x4 p, temp, ident;
-        mat4x4_identity(ident);
-        mat4x4_scale_aniso(temp, ident, 2, 2, 2);
-
-        float w = glob_game.ppw;
-        float h = glob_game.pph;
-
-        if(Lx < 0)
-        {
-            Lx = lander.x - w / 2;
-            Ly = lander.y - h / 2;
-            Lw = w;
-            Lh = h;
-        }
-        else if(lander.x - 10 < Lx)
-        {
-            mat4x4_translate_in_place(temp, (-2 / glob_game.ppw) * (lander.x - 10) + 1, 0, 0);
-            Lx = lander.x - 10;
-        }
-        else if(lander.x + 10 > Lx + Lw)
-        {
-            mat4x4_translate_in_place(temp, (-2 / glob_game.ppw) * (lander.x + ))
-        }
-        mat4x4_translate_in_place(temp, (-2 / glob_game.ppw) * lander.x + 1, (-2 / glob_game.pph) * lander.y + 1, 0);
-        mat4x4_transpose(p, temp);
-        mat4x4_mul(temp, p, perspectiveMatrix);
-
-        glUniformMatrix4fv(glob_locs.uPMatrix, 1, GL_FALSE, (GLfloat *)temp);
-    }
-    else*/
     cam_prepare_matrix(&camera);
 
     glUniformMatrix4fv(glob_locs.uPMatrix, 1, GL_FALSE, (GLfloat *)camera.matrix);
@@ -108,6 +75,9 @@ void gm_handle_key_event(SDL_Event *e)
 {
     SDL_KeyboardEvent evt = e->key;
     if(evt.type != SDL_KEYDOWN && evt.type != SDL_KEYUP)
+        return;
+
+    if(glob_game.landerIsLanded)
         return;
 
     unsigned mappedKey = 0;
@@ -207,7 +177,6 @@ void gm_loop()
     int frames = 0;
 #endif
 
-    int landerMayMove = 1;
     long ticks = SDL_GetTicks();
     while(!quit)
     {
@@ -236,18 +205,46 @@ void gm_loop()
         float dT = (now - ticks) / 1000.0;
         ticks = now;
 
-        if(landerMayMove)
-            lndr_step(&lander, dT);
+        lndr_step(&lander, dT);
 
         gm_position_camera(dT);
 
         GLfloat points[112];
         lndr_get_current_points(&lander, points);
-        if(!tr_test_collisions(&terrain, points, 56) && landerMayMove)
+        if(!tr_test_collisions(&terrain, points, 56) && !glob_game.landerIsLanded)
         {
-            landerMayMove = 0;
-            printf("Foot 1: %lf\nFoot 2: %lf\n", tr_accurate_altitude_at(&terrain, points[LANDER_FOOT_LEFT_INDEX], points[LANDER_FOOT_LEFT_INDEX + 1]),
-                    tr_accurate_altitude_at(&terrain, points[LANDER_FOOT_RIGHT_INDEX], points[LANDER_FOOT_RIGHT_INDEX + 1]));
+            double lalt = tr_accurate_altitude_at(&terrain, points[LANDER_FOOT_LEFT_INDEX], points[LANDER_FOOT_LEFT_INDEX + 1]);
+            double ralt = tr_accurate_altitude_at(&terrain, points[LANDER_FOOT_RIGHT_INDEX], points[LANDER_FOOT_RIGHT_INDEX + 1]);
+
+            glob_game.landerIsLanded = 1;
+            printf("Foot 1: %lf\nFoot 2: %lf\n", lalt, ralt);
+                    
+            glob_game.keysDown = 0;
+
+            lndr_print_diagnostics(&lander);
+            LandingResult lr = lndr_interpret_landing_result(&lander, lalt, ralt);
+            char *text;
+            switch(lr)
+            {
+                case LR_CRASH:
+                    text = "Crash!";
+                    break;
+                case LR_HARD:
+                    text = "Hard";
+                    break;
+                case LR_OKAY:
+                    text = "Okay";
+                    break;
+                case LR_GOOD:
+                    text = "Good";
+                    break;
+                case LR_PERFECT:
+                    text = "Perfect!";
+                    break;
+            }
+            printf("Landing: %s\n", text);
+            
+            lander.dX = lander.dY = lander.dYY = 0;
         }
 
 #ifdef DEBUG_FRAMERATE

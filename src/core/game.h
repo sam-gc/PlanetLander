@@ -13,6 +13,8 @@ typedef struct {
     int score;
     float zoom;
 
+    int landerIsLanded;
+
     float ppw;
     float pph;
 

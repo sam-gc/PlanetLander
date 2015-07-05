@@ -173,7 +173,7 @@ void lndr_step(Lander *lander, float dT)
     }
 
     // Make zero sticky to make sure a vertical landing is possible
-    if(fabs(lander->rotation) < 0.05)
+    if(fabs(lander->rotation) < lander->dR * dT - 0.01)
         lander->rotation = 0;
 
     // Deal with thrust
@@ -244,6 +244,42 @@ void lndr_render(Lander *lander)
         glDrawArrays(GL_LINE_STRIP, 0, 4);
         glBindVertexArray(0);
     }
+}
+
+LandingResult lndr_interpret_landing_result(Lander *lander, double lalt, double ralt)
+{
+    if(lalt > 2 || ralt > 2)
+        return LR_CRASH;
+    if(fabs(lander->rotation) > 0.43)
+        return LR_CRASH;
+    if(lander->dY < -22 || fabs(lander->dX) > 4.5)
+        return LR_CRASH;
+    if(lander->dY < -10 || fabs(lander->dX) > 3)
+        return LR_HARD;
+    if(lalt > 1.5 || ralt > 1.5)
+        return LR_HARD;
+    if(fabs(lander->rotation) > 0.2)
+        return LR_HARD;
+    if(lalt > 1.1 || ralt > 1.1)
+        return LR_OKAY;
+    if(fabs(lander->rotation) > 0.15)
+        return LR_OKAY;
+    if(lander->dY < -8 || fabs(lander->dX) > 2.5)
+        return LR_OKAY;
+    if(lalt > 0.6 || ralt > 0.6)
+        return LR_GOOD;
+    if(fabs(lander->rotation) > 0)
+        return LR_GOOD;
+    if(lander->dY < -5 || fabs(lander->dX) > 1.5)
+        return LR_GOOD;
+
+    return LR_PERFECT;
+}
+
+void lndr_print_diagnostics(Lander *lander)
+{
+    printf("* Lander Model Diagnostics *\n===========================\n");
+    printf("dX: %lf\tdY: %lf\nRotation: %lf\n", lander->dX, lander->dY, lander->rotation);
 }
 
 void lndr_get_current_bounding_box(Lander *lander, GLfloat *buf)
